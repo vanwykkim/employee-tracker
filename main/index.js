@@ -64,6 +64,17 @@ const addEmployeeQuest = (roles,employees) => {
     },
   ]);
 };
+const addEmployet = async() =>{
+  //TODO: get roles and employees arrays to add to update
+  await addEmployee(roles,employees)
+  .then(function(answers){
+    //TODO: run function to add employee to database
+      console.log("Employee, "+ answers.firstName+ " "+answers.lastName +", was entered in the database.");
+      }).catch((err) => console.error(err));
+      menu();
+}
+
+          
 const addRoleQuest = (departments) => {
   return inquirer.prompt([
     {
@@ -84,18 +95,36 @@ const addRoleQuest = (departments) => {
     },
   ]);
 };
+
+const addRole = async() =>{
+  //TODO: departments arrays to add to update
+  await addRoleQuest(departments)
+  .then(function(answers){
+    //TODO: run function to add Role to database
+      console.log("Role "+ answers.rollName+" was entered in the database.");
+      }).catch((err) => console.error(err));
+      menu();
+};
 const addDeptQuest = () => {
   return inquirer.prompt([
     {
       type: 'input',
       name: 'deptName',
-      message: 'What is the name of the Department you wouldd like to add?',
+      message: 'What is the name of the Department you would like to add?',
     },
   ]);
 };
 
+const addDept= async() =>{
+  await addDeptQuest()
+  .then(function(answers){
+//TODO: run function to add this to database
+    console.log(answers.deptName + " Department was added to the database.");
+  }).catch((err) => console.error(err));
+  menu();
+}
 
-const updateEmployee = (employees, roles) => {
+const updateEmployeeQuest = (employees, roles) => {
   return inquirer.prompt([
     {
       type: 'list',
@@ -110,7 +139,16 @@ const updateEmployee = (employees, roles) => {
       choices:[roles],
     },
   ]);
-};
+}
+const updateEmployee = async() =>{
+  //TODO: get employees and roles arrays to add to update
+  await updateEmployeeQuest(employees, roles)
+  .then(function(answers){
+    //TODO: run function to add update to database
+      console.log(answers.updateEmployee +" Role was updated to"+ answers.updateRole+" in the database.");
+      }).catch((err) => console.error(err));
+      menu();
+}
 
 
   //   {
@@ -147,32 +185,30 @@ const menu = () => {
           console.log("Thanks for using the Employee Tracker Database");
           break;
         case "View All Employees":
+          // TODO: make function to display employees
           console.log("List of Employees displayed");
           menu();
           break;
         case "Add Employee":
-          console.log("An employee was added to the database");
-          menu();
+          addEmployeeQuest();
           break;
         case "Update Employee Role":
-          console.log("Employee\'s Role was updated in the database.");
-          menu();
+          updateEmployee();
           break;
         case "View All Roles":
+          // TODO: make function to display roles
           console.log("All Roles are displayed.");
           menu();
           break;
         case "Add Role":
-          console.log("A Role has been added to the database.");
-          menu();
           break;
         case "View All Departments":
+         // TODO: make function to display depts
           console.log("All Departments are displayed");
           menu();
           break;
-        case "Add Department ":
-          console.log("A Department was added to the database.");
-          menu();
+        case "Add Department":
+          addDept();
           break;
       }
     })
