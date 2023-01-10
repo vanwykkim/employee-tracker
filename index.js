@@ -3,12 +3,7 @@ const inquirer = require('inquirer');
 const mysql = require('mysql2');
 //const ct = require('console.table');
 const accessDatabase = require('./js/accessDatabase');
-const express = require('express');
 
-
-//Express middleware
-const PORT = process.env.PORT || 3001;
-const app = express();
 
 // Connect to database
 // const db = mysql.createConnection(
