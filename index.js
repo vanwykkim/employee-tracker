@@ -1,7 +1,7 @@
 // TODO: Include packages needed for this application
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
-//const ct = require('console.table');
+const ct = require('console.table');
 const accessDatabase = require('./js/accessDatabase');
 
 
@@ -13,9 +13,9 @@ const accessDatabase = require('./js/accessDatabase');
 //     user: 'root',
 //     // TODO: Add MySQL password here
 //     password: '',
-//     database: 'movies_db'
+//     database: 'employee_manager_db'
 //   },
-//   console.log(`Connected to the tracker_db database.`)
+//   console.log(`Connected to the employee_manager_db database.`)
 // );
 
 //make a createDatabse object
