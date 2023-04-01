@@ -3,9 +3,16 @@ const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const ct = require('console.table');
 const accessDatabase = require('./js/accessDatabase');
+// const express = require("express");
+
+// const PORT = process.env.PORT || 3001;
+// const app = express();
+
+// app.use(express.urlencoded({ extended: false }));
+// app.use(express.json());
 
 
-// Connect to database
+// //Connect to database
 // const db = mysql.createConnection(
 //   {
 //     host: 'localhost',
@@ -67,7 +74,7 @@ const addEmployee = async() =>{
       console.log("Employee, "+ answers.firstName+ " "+answers.lastName +", was entered in the database.");
       }).catch((err) => console.error(err));
       menu();
-}
+};
 
           
 const addRoleQuest = (departments) => {

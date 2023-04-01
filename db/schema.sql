@@ -6,7 +6,7 @@ USE employee_manager_db;
 
 CREATE TABLE department (
   id INT NOT NULL AUTO_INCREMENT,
-  name VARCHAR(30) NOT NULL,
+  dept_name VARCHAR(30) NOT NULL,
   PRIMARY KEY (id)
 );
 
