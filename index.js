@@ -1,32 +1,56 @@
 // TODO: Include packages needed for this application
 const inquirer = require('inquirer');
+require('console.table');
+// Import and require mysql2
 const mysql = require('mysql2');
-const ct = require('console.table');
-const accessDatabase = require('./js/accessDatabase');
-// const express = require("express");
+require("dotenv").config();
 
-// const PORT = process.env.PORT || 3001;
-// const app = express();
+const db = mysql.createConnection(
+  {
+    host: "localhost",
+    // MySQL username,
+    user: process.env.DB_USER,
+    // TODO: Add MySQL password here
+    password: process.env.DB_PASSWORD,
+    database: "employee_manager_db",
+  },
+  console.log(`Connected to the employee_manager_db database.`)
+);
 
-// app.use(express.urlencoded({ extended: false }));
-// app.use(express.json());
+const utils = require("util");
+db.query = utils.promisify(db.query);
+
+const viewAllEmployees = async () => {
+const sql = `SELECT employee.id, employee.first_name AS "first name", employee.last_name 
+                    AS "last name", role.title, department.dept_name AS department, role.salary, 
+                    concat(manager.first_name, " ", manager.last_name) AS manager
+                    FROM employee
+                    LEFT JOIN role
+                    ON employee.role_id = role.id
+                    LEFT JOIN department
+                    ON role.department_id = department.id
+                    LEFT JOIN employee manager
+                    ON manager.id = employee.manager_id`;
+
+  const results = await db.query(sql);
+  console.table(results);
+  menu();
+};
+
+const viewAllDepartments = async () => {
+  const sql = `SELECT department.id, department.dept_name AS "department" from department`;
+  const results = await db.query(sql);
+  console.table(results);
+  menu();
+};
 
 
-// //Connect to database
-// const db = mysql.createConnection(
-//   {
-//     host: 'localhost',
-//     // MySQL username,
-//     user: 'root',
-//     // TODO: Add MySQL password here
-//     password: '',
-//     database: 'employee_manager_db'
-//   },
-//   console.log(`Connected to the employee_manager_db database.`)
-// );
-
-//make a createDatabse object
-const aDB = new accessDatabase();
+const viewAllRoles = async () => {
+  const sql = `SELECT role.id, role.title, department.dept_name AS "department" FROM role LEFT JOIN department ON role.department_id = department.id`;
+  const results = await db.query(sql);
+  console.table(results);
+  menu();
+};
 
 const startQuestion = () => {
   return inquirer.prompt([
@@ -54,26 +78,31 @@ const addEmployeeQuest = (roles,employees) => {
     },
     {
       type: 'list',
-      name: 'employeeRole',
+      name: 'roleId',
       message: 'What is the employee\'s role?',
-      choices:[roles],
+      choices: roles,
     },
     {
       type: 'list',
-      name: 'manager',
+      name: 'managerId',
       message: 'Who is the employee\'s manager?',
-      choices:[employees],
+      choices: employees,
     },
   ]);
 };
 const addEmployee = async() =>{
-  //TODO: get roles and employees arrays to add to update
-  await addEmployeeQuest(roles,employees)
-  .then(function(answers){
-    //TODO: run function to add employee to database
-      console.log("Employee, "+ answers.firstName+ " "+answers.lastName +", was entered in the database.");
-      }).catch((err) => console.error(err));
-      menu();
+  try {
+      //TODO: get roles and employees arrays to add to update
+  const roles = await db.query('SELECT id as value, title as name FROM role');
+   const employees = await db.query("SELECT id as value, concat(first_name, ' ', last_name) as name FROM employee");
+  const answers = await addEmployeeQuest(roles,employees)
+  //TODO: run function to add employee to database
+  await db.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)',[answers.firstName, answers.lastName, answers.roleId, answers.managerId]);
+    console.log("Employee, "+ answers.firstName+ " "+answers.lastName +", was entered in the database.");
+     menu();
+  } catch (error) {
+    console.log("error");
+  }
 };
 
           
@@ -154,30 +183,6 @@ const updateEmployee = async() =>{
 }
 
 
-  //   {
-  //     type: 'confirm',
-  //     name: 'license',
-  //     message: 'Did you use a license in your github repo?',
-  //     default: false,
-  //   },
-
-  
- 
-
-
-// Use writeFileSync method to use promises instead of a callback function
-
-// Bonus using writeFileSync as a promise
-// const init = () => {
-//   questions()
-//     // Use writeFile method imported from fs.promises to use promises instead of
-//     // a callback function
-//    // .then(function(answers){console.log("this is the answers "+answers.title+" "+ answers.description);})
-//     .then((answers) => {writeFile('README.md', gMD.generateMarkdownTitle(answers.title, answers.description, answers.installation, answers.usage, answers.contributing, answers.test, answers.username, answers.repo, answers.email, answers.license)); appendFile('README.md', gMD.generateMarkdownLicense(answers.license, answers.username, answers.repo));})
-//     .then(() => console.log('Successfully wrote to README.md'))
-//     .catch((err) => console.error(err));
-// };
-
 const menu = () => {
   startQuestion()
   //   // Use writeFile ;method imported from fs.promises to use promises instead of
@@ -189,8 +194,7 @@ const menu = () => {
           break;
         case "View All Employees":
           // TODO: make function to display employees
-          console.log("List of Employees displayed");
-          menu();
+          viewAllEmployees();    
           break;
         case "Add Employee":
           addEmployee();
@@ -200,16 +204,13 @@ const menu = () => {
           break;
         case "View All Roles":
           // TODO: make function to display roles
-          console.log("All Roles are displayed.");
-          menu();
+          viewAllRoles();
           break;
         case "Add Role":
           addRole();
           break;
         case "View All Departments":
-         // TODO: make function to display depts
-          console.log("All Departments are displayed");
-          menu();
+         viewAllDepartments();
           break;
         case "Add Department":
           addDept();
