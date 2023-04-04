@@ -46,7 +46,7 @@ const viewAllDepartments = async () => {
 
 
 const viewAllRoles = async () => {
-  const sql = `SELECT role.id, role.title, department.dept_name AS "department" FROM role LEFT JOIN department ON role.department_id = department.id`;
+  const sql = `SELECT role.id, role.title, role.salary, department.dept_name AS "department" FROM role LEFT JOIN department ON role.department_id = department.id`;
   const results = await db.query(sql);
   console.table(results);
   menu();
@@ -92,16 +92,17 @@ const addEmployeeQuest = (roles,employees) => {
 };
 const addEmployee = async() =>{
   try {
-      //TODO: get roles and employees arrays to add to update
+  //get roles and employees arrays to add to database
   const roles = await db.query('SELECT id as value, title as name FROM role');
    const employees = await db.query("SELECT id as value, concat(first_name, ' ', last_name) as name FROM employee");
   const answers = await addEmployeeQuest(roles,employees)
-  //TODO: run function to add employee to database
+  //run function to add employee to database
   await db.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)',[answers.firstName, answers.lastName, answers.roleId, answers.managerId]);
     console.log("Employee, "+ answers.firstName+ " "+answers.lastName +", was entered in the database.");
      menu();
   } catch (error) {
-    console.log("error");
+    console.log(error);
+    menu();
   }
 };
 
@@ -110,31 +111,36 @@ const addRoleQuest = (departments) => {
   return inquirer.prompt([
     {
       type: 'input',
-      name: 'rollName',
+      name: 'roleName',
       message: 'What is the Role you would like to add?',
     },
     {
-      type: 'number',
+      type: 'input',
       name: 'salary',
       message: 'What is the salary for this Role? $',
     },
     {
       type: 'list',
-      name: 'departmentID',
+      name: 'departmentId',
       message: 'What Department does this Role belong to?',
-      choices:[departments],
+      choices: departments,
     },
   ]);
 };
 
-const addRole = async() =>{
-  //TODO: departments arrays to add to update
-  await addRoleQuest(departments)
-  .then(function(answers){
-    //TODO: run function to add Role to database
-      console.log("Role "+ answers.rollName+" was entered in the database.");
-      }).catch((err) => console.error(err));
-      menu();
+const addRole = async () =>{
+      try {
+      //get dept arrays to add to update
+  const departments = await db.query('SELECT id AS value, dept_name AS name FROM department');
+  const answers = await addRoleQuest(departments);
+  //function to add role to database
+  await db.query('INSERT INTO role (title, salary, department_id) VALUES (?,?,?)',[answers.roleName, answers.salary, answers.departmentId]);
+    console.log("Role " + answers.roleName + " was entered in the database.");
+     menu();
+  } catch (error) {
+    console.log(error);
+    menu();
+  }
 };
 
 const addDeptQuest = () => {
@@ -148,12 +154,18 @@ const addDeptQuest = () => {
 };
 
 const addDept= async() =>{
-  await addDeptQuest()
-  .then(function(answers){
-//TODO: run function to add this to database
-    console.log(answers.deptName + " Department was added to the database.");
-  }).catch((err) => console.error(err));
-  menu();
+  try {
+    //function to get the name of the Department you would like to add
+    const answers = await addDeptQuest();
+    //function to add department to database
+    await db.query(
+    "INSERT INTO department (dept_name) VALUES (?)",[answers.deptName]);
+    console.log("Department " + answers.deptName + " was entered in the database.");
+    menu();
+  } catch (error) {
+    console.log(error);
+    menu();
+  }
 }
 
 const updateEmployeeQuest = (employees, roles) => {
@@ -162,38 +174,42 @@ const updateEmployeeQuest = (employees, roles) => {
       type: 'list',
       name: 'updateEmployee',
       message: 'Which Employee would you like to update?',
-      choices:[employees],
+      choices: employees,
     },
     {
       type: 'list',
       name: 'updateRole',
       message: 'What is the Employee\'s new role?',
-      choices:[roles],
+      choices: roles,
     },
   ]);
 }
 const updateEmployee = async() =>{
-  //TODO: get employees and roles arrays to add to update
-  await updateEmployeeQuest(employees, roles)
-  .then(function(answers){
-    //TODO: run function to add update to database
-      console.log(answers.updateEmployee +" Role was updated to"+ answers.updateRole+" in the database.");
-      }).catch((err) => console.error(err));
+  try{
+  //get employees and roles arrays to add to update
+  const roles = await db.query("SELECT id as value, title as name FROM role");
+  const employees = await db.query(
+    "SELECT id as value, concat(first_name, ' ', last_name) as name FROM employee"
+  );
+  const answers = await updateEmployeeQuest(employees, roles)
+      //function to add update to database
+      db.query(`UPDATE employee SET role_id = ${answers.updateRole} WHERE employee.id = ${answers.updateEmployee}`);
+      console.log(" Role was updated in the database.");
       menu();
+    }catch(error){
+       console.log(err);
+       menu();
+    } 
 }
-
 
 const menu = () => {
   startQuestion()
-  //   // Use writeFile ;method imported from fs.promises to use promises instead of
-  //   // a callback function
    .then(function(answers){
       switch(answers.menuChoice){
         case "Quit":
           console.log("Thanks for using the Employee Tracker Database");
           break;
         case "View All Employees":
-          // TODO: make function to display employees
           viewAllEmployees();    
           break;
         case "Add Employee":
@@ -203,7 +219,6 @@ const menu = () => {
           updateEmployee();
           break;
         case "View All Roles":
-          // TODO: make function to display roles
           viewAllRoles();
           break;
         case "Add Role":
@@ -217,7 +232,6 @@ const menu = () => {
           break;
       }
     })
-  //   .then(put function here to use this)
     .catch((err) => console.error(err));
   }
 
